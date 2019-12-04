@@ -4,6 +4,7 @@ import math
 import numpy as np
 import sys
 
+records = {}
 xList, y1List, y2List = [], [], []
 
 def load_data(filename):
@@ -44,7 +45,7 @@ def loss_ss(data, params):
     
 def learn(train, test, steps=1000):
     delta = 1e-3
-    gamma = 0.75    #learning rate
+    gamma = 1    #learning rate
     batch_size = len(train)
     loss = loss_ss
     #loss = accuracy
@@ -70,9 +71,12 @@ def learn(train, test, steps=1000):
             params -= gamma * grad
         
         tacc, dacc = accuracy(train,params), accuracy(test,params)
-        xList.append(counter)
-        y1List.append(tacc)
-        y2List.append(dacc)
+        records[counter] = records.get(counter, {})
+        records[counter]["train"] = records[counter].get("train",[])+[tacc]
+        records[counter]["dev"] = records[counter].get("dev",[])+[dacc]
+        #xList.append(counter)
+        #y1List.append(tacc)
+        #y2List.append(dacc)
         counter += 1          
         print('trainAcc=%.5f\ttestAcc=%.5f'%(tacc, dacc))
     return params
@@ -81,19 +85,38 @@ def demo():
     import pdb
     train = load_data(sys.argv[1])
     dev = load_data(sys.argv[2])
-    params = learn(train, dev, 1000)
+    params = learn(train, dev, 700)
     # (uniform) random init params in range +- 0.5 centered at zero. 
     #params = 0.5-np.random.rand(len(data[0]))  
     print('Final Result: trainAcc=%.5f\ttestAcc=%.5f'%(accuracy(train,params), accuracy(dev,params)))
     
+def average(lst):
+    return sum(lst) / len(lst)
+
 
 if __name__ == '__main__':
-    demo()
-    fig = plt.figure()
-    fig.suptitle('Accuracy vs Epochs (Logistic Regression)')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accurancy')
-    plt.plot(xList, y1List, 'b', label='training')
-    plt.plot(xList, y2List, 'g', label='development')
-    plt.legend()
-    plt.savefig('part1-1-0.75.png')
+    for i in range(30):
+        demo()
+        print(i)
+    iteration = sorted(records.items())
+    for stuff in iteration:
+        xList.append(stuff[0])
+        y1List.append(average(stuff[1]["train"]))
+        y2List.append(average(stuff[1]["dev"]))
+
+
+
+    fig1, ax1 = plt.subplots()
+    ax1.set_title('Mean Accuracy vs Epochs (Logistic Regression)')    
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Accurancy')
+    ax1.plot(xList, y1List, 'b', label='training')
+    ax1.plot(xList, y2List, 'g', label='development')
+    ax1.legend()
+    ax1.figure.savefig('part1-2.png')
+
+    fig2, ax2 = plt.subplots()
+    ax2.set_title('Box-and-whiskers Plot (Logistic Regression)')
+    ax2.boxplot([y1List,y2List])
+    ax2.set_xticklabels(["training", "development"])
+    ax2.figure.savefig('part1-3.png')

@@ -1,5 +1,4 @@
 import keras
-from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adagrad
@@ -7,10 +6,11 @@ from keras.optimizers import RMSprop
 from keras.optimizers import Adam
 from keras.optimizers import SGD
 from time import time
-import activations
 import numpy as np
-import mlp
-import loss
+import matplotlib.pyplot as plt
+
+records = {}
+xList, y1List, y2List, q4 = [], [], [], []
 
 def load_sonar(path):
     xdata = []
@@ -35,7 +35,7 @@ def load_sonar(path):
 
 def expt_001():
     xtrain , ytrain = load_sonar('data/sonar.train')
-    xdev , ydev = load_sonar('data/sonar.dev')
+    xdev , ydev = load_sonar('data/sonar.test')
 
     gamma = 1
     epochs = 10000
@@ -73,17 +73,58 @@ def expt_001():
                             verbose=0,
                             validation_data=(xdev, ydev))
 
-
+        counter = epoch+1
+        
         score = model.evaluate(xtrain, ytrain, verbose=0)
         #print('Train loss:', score[0])
         #print('Train accuracy:', score[1])
-        trainacc = score[1]
+        tacc = score[1]
         score = model.evaluate(xdev, ydev, verbose=0)
         #print('Dev loss:', score[0])
         #print('Dev accuracy:', score[1])
-        devacc = score[1]
-        print('Accuracy after %d rounds is %f train, %f dev '%(epoch, trainacc, devacc))
+        dacc = score[1]
 
+        records[counter] = records.get(counter, {})
+        records[counter]["train"] = records[counter].get("train",[])+[tacc]
+        records[counter]["dev"] = records[counter].get("dev",[])+[dacc]
+
+        print('Accuracy after %d rounds is %f train, %f dev '%(epoch, tacc, dacc))
+
+def average(lst):
+    return sum(lst) / len(lst)
 
 if __name__ == '__main__':
-          expt_001()
+    for i in range(30):
+        expt_001()
+        print(i+1)
+    iteration = sorted(records.items())
+    for stuff in iteration:
+        xList.append(stuff[0])
+        y1List.append(average(stuff[1]["train"]))
+        y2List.append(average(stuff[1]["dev"]))
+        if stuff[0] == 9999:
+            q4 += stuff[1]["dev"]
+    print(q4)
+    print(average(q4), min(q4), max(q4), np.std(q4))
+
+
+    #fig1, ax1 = plt.subplots()
+    #ax1.set_title('Mean Accuracy vs Epochs (MLP)')    
+    #ax1.set_xlabel('Epoch')
+    #ax1.set_ylabel('Accurancy')
+    #ax1.plot(xList, y1List, 'b', label='training')
+    #ax1.plot(xList, y2List, 'g', label='development')
+    #ax1.legend()
+    #ax1.figure.savefig('part2-2.png')
+#
+    #fig2, ax2 = plt.subplots()
+    #ax2.set_title('Box-and-whiskers Plot (MLP)')
+    #ax2.boxplot([y1List,y2List])
+    #ax2.set_xticklabels(["training", "development"])
+    #ax2.figure.savefig('part2-3.png')
+
+
+    fig3, ax3 = plt.subplots()
+    ax3.set_title('Histogram of Test Set Accuracy')
+    ax3.hist(q4)
+    ax3.figure.savefig('part3-2.png')

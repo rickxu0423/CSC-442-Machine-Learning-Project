@@ -78,14 +78,14 @@ def learn(train, test, steps=1000):
         #y1List.append(tacc)
         #y2List.append(dacc)
         counter += 1          
-        print('trainAcc=%.5f\ttestAcc=%.5f'%(tacc, dacc))
+        #print('trainAcc=%.5f\ttestAcc=%.5f'%(tacc, dacc))
     return params
 
 def demo():
     import pdb
     train = load_data(sys.argv[1])
     dev = load_data(sys.argv[2])
-    params = learn(train, dev, 700)
+    params = learn(train, dev, 1200)
     # (uniform) random init params in range +- 0.5 centered at zero. 
     #params = 0.5-np.random.rand(len(data[0]))  
     print('Final Result: trainAcc=%.5f\ttestAcc=%.5f'%(accuracy(train,params), accuracy(dev,params)))
@@ -97,7 +97,7 @@ def average(lst):
 if __name__ == '__main__':
     for i in range(30):
         demo()
-        print(i)
+        print(i+1)
     iteration = sorted(records.items())
     for stuff in iteration:
         xList.append(stuff[0])
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
 
     fig1, ax1 = plt.subplots()
-    ax1.set_title('Mean Accuracy vs Epochs (Logistic Regression)')    
+    ax1.set_title('Accuracy vs Epochs (Mean Logistic Regression)')    
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Accurancy')
     ax1.plot(xList, y1List, 'b', label='training')

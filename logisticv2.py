@@ -5,7 +5,7 @@ import numpy as np
 import sys
 
 records = {}
-xList, y1List, y2List = [], [], []
+xList, y1List, y2List, bplot1, bplot2 = [], [], [], [], []
 
 def load_data(filename):
     # Assume data is in CSV format, float-valued features
@@ -93,7 +93,6 @@ def demo():
 def average(lst):
     return sum(lst) / len(lst)
 
-
 if __name__ == '__main__':
     for i in range(30):
         demo()
@@ -103,11 +102,15 @@ if __name__ == '__main__':
         xList.append(stuff[0])
         y1List.append(average(stuff[1]["train"]))
         y2List.append(average(stuff[1]["dev"]))
+        if not stuff[0] % 100:
+            bplot1.append(stuff[1]["train"])
+            bplot2.append(stuff[1]["dev"])
+            
 
 
 
     fig1, ax1 = plt.subplots()
-    ax1.set_title('Accuracy vs Epochs (Mean Logistic Regression)')    
+    ax1.set_title('Mean Accuracy vs Epochs (Logistic Regression)')    
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Accurancy')
     ax1.plot(xList, y1List, 'b', label='training')
@@ -117,6 +120,7 @@ if __name__ == '__main__':
 
     fig2, ax2 = plt.subplots()
     ax2.set_title('Box-and-whiskers Plot (Logistic Regression)')
-    ax2.boxplot([y1List,y2List])
-    ax2.set_xticklabels(["training", "development"])
+    ax2.boxplot(bplot1)
+    ax2.boxplot(bplot2)
+    ax2.set_xticklabels([100,200,300,400,500,600,700,800,900,1000,1100,1200])
     ax2.figure.savefig('part1-3.png')
